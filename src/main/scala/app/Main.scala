@@ -21,18 +21,16 @@ object Main {
     // Files.list(dir).iterator().asScala.foreach(println)
 
     val resource_path = "./src/main/resources"
-    val filename = "movies_small.csv"
+    val movie_filename = "movies_small.csv"
     // flz: debug, finding which folders are accessable
     //   for (line <- Source.fromFile(resource_path + "/" + filename).getLines) {
     //     println(line)
     //   }
 
-    val rdd = sc.textFile(resource_path + "/" + filename) 
-    // val moviesLoader = new MoviesLoader(sc, "dataset/movies_small.csv")
-    print("done collecting\n\n\n\n\n")
-    // val rdd = moviesLoader.load()
-    // print("done loading\n\n\n\n\n")
-    print(rdd.collect().mkString("\n"))
+    val moviesLoader = new MoviesLoader(sc, resource_path + "/" + movie_filename)
+    val rdd = moviesLoader.load()
+    print("done loading\n\n\n\n\n")
+    rdd.collect().foreach(f => println(f._1, f._2, f._3))
     //your code goes here
   }
 }
