@@ -21,7 +21,7 @@ object Main {
     // Files.list(dir).iterator().asScala.foreach(println)
 
     val resource_path = "./src/main/resources"
-    val filename = "test.txt"
+    val filename = "movies_small.csv"
     // flz: debug, finding which folders are accessable
     //   for (line <- Source.fromFile(resource_path + "/" + filename).getLines) {
     //     println(line)
@@ -32,7 +32,7 @@ object Main {
     print("done collecting\n\n\n\n\n")
     // val rdd = moviesLoader.load()
     // print("done loading\n\n\n\n\n")
-    print(rdd)
+    print(rdd.collect().mkString("\n"))
     //your code goes here
   }
 }
