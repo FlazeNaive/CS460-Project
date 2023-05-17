@@ -5,6 +5,8 @@ import org.apache.spark.{SparkConf, SparkContext}
 import loaders.MoviesLoader
 import loaders.RatingsLoader
 import analytics.SimpleAnalytics
+import org.apache.log4j.{Level, Logger}
+
 
 // flz: debug, finding which folders are accessable
 // import java.nio.file.{FileSystems, Files}
@@ -16,6 +18,7 @@ object Main {
     val conf = new SparkConf().setAppName("app").setMaster("local[*]")
     val sc = SparkContext.getOrCreate(conf)
 
+    Logger.getLogger("org").setLevel(Level.OFF)
     print("start\n\n\n\n\n")
 
     // flz: debug, finding which folders are accessable
@@ -43,12 +46,12 @@ object Main {
     analytics.init(ratings_rdd, movies_rdd)
     println("done initializing analytics\n\n\n\n\n")
 
-    // analytics.getNumberOfMoviesRatedEachYear.collect().sortWith(_._1 <= _._1).foreach(println)
-    // println("done calculating number of ratings each yeas\n\n\n\n\n")
-    // analytics.getMostRatedMovieEachYear.filter(_._1 == 1996).collect().foreach(println)
-    // println("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
-    // analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
-    // println("done looking up for most rated GENRE each yeas\n\n\n\n\n")
+     analytics.getNumberOfMoviesRatedEachYear.collect().sortWith(_._1 <= _._1).foreach(println)
+     println("done calculating number of ratings each yeas\n\n\n\n\n")
+     analytics.getMostRatedMovieEachYear.filter(_._1 == 1996).collect().foreach(println)
+     println("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
+     analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
+     println("done looking up for most rated GENRE each yeas\n\n\n\n\n")
     // val most_least_rated_genre = analytics.getMostAndLeastRatedGenreAllTime
     // println("MOST and LEAST rated GENRE all time: ")
     // println(most_least_rated_genre._1, most_least_rated_genre._2)
