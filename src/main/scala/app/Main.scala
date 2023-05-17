@@ -52,13 +52,13 @@ object Main {
      println("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
      analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
      println("done looking up for most rated GENRE each yeas\n\n\n\n\n")
-    // val most_least_rated_genre = analytics.getMostAndLeastRatedGenreAllTime
-    // println("MOST and LEAST rated GENRE all time: ")
-    // println(most_least_rated_genre._1, most_least_rated_genre._2)
-    // println("done looking up for MOST and LEAST rated GENRE all time\n\n\n\n")
-    // val test_genre_list = sc.parallelize(List("Drama", "Comedy"))
-    // analytics.getAllMoviesByGenre(movies_rdd, (test_genre_list))
-    // println("done looking up for ALL movies by GENRE\n\n\n\n\n")
+     val most_least_rated_genre = analytics.getMostAndLeastRatedGenreAllTime
+     println("MOST and LEAST rated GENRE all time: ")
+     println(most_least_rated_genre._1, most_least_rated_genre._2)
+     println("done looking up for MOST and LEAST rated GENRE all time\n\n\n\n")
+     val test_genre_list = sc.parallelize(List("Drama", "Comedy"))
+     analytics.getAllMoviesByGenre(movies_rdd, (test_genre_list))
+     println("done looking up for ALL movies by GENRE\n\n\n\n\n")
 
 
     //your code goes here

@@ -60,26 +60,26 @@ class SimpleAnalytics() extends Serializable {
                                                                                               (year, groupedByTitle)
                                                                                             }) // (year, (titleID, numComments))
                           // flz: debug output
-                          ratings_each_title_each_year.collect().sortWith(_._1 <= _._1).foreach(println)
-                          println("\n\n\n")
+//                          ratings_each_title_each_year.collect().sortWith(_._1 <= _._1).foreach(println)
+//                          println("\n\n\n")
 
                           val tmp = ratings_each_title_each_year.map({case (year, titleCommendsNumber) =>
                                                                           val maxRatedTitleID = titleCommendsNumber.maxBy(x => (x._2, x._1)) 
                                                                           (maxRatedTitleID._1, year)
                                                                     }) // (titleID, year)
-                          tmp.collect().sortWith(_._2 <= _._2).foreach(println)
+//                          tmp.collect().sortWith(_._2 <= _._2).foreach(println)
                           tmp
   }
 
   def getMostRatedMovieEachYear: RDD[(Int, String)] = {
                               val maxRatedTitleID = helper_getMostRatedIDEachYear
-                              maxRatedTitleID.collect().sortWith(_._2 <= _._2).foreach(println)
+//                              maxRatedTitleID.collect().sortWith(_._2 <= _._2).foreach(println)
                               val maxRatedTitle = maxRatedTitleID.join(titlesGroupedByID).map({case (titleID, (year, titleIterable)) => 
                                                                                                   val title = titleIterable.head._1
                                                                                                   (year, title)
                                                                                                 })
                               // flz: debug output
-                              maxRatedTitle.collect().sortWith(_._1 <= _._1).foreach(println)
+//                              maxRatedTitle.collect().sortWith(_._1 <= _._1).foreach(println)
                               maxRatedTitle
                             }
 
@@ -125,7 +125,7 @@ class SimpleAnalytics() extends Serializable {
                             val flattenGenreTitle = movieTitleGenres.flatMap(x => x._1.map(y => (y, x._2)))
                             val filteredGenreTitle = flattenGenreTitle.join(requiredGenres.map((_, 1))).map(x => x._2._1).distinct()
                             // flz: debug output
-                            filteredGenreTitle.collect().foreach(println)
+//                            filteredGenreTitle.collect().foreach(println)
                             filteredGenreTitle
                           }
 
