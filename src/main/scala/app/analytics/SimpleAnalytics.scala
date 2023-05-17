@@ -13,7 +13,7 @@ class SimpleAnalytics() extends Serializable {
   private var moviesPartitioner: HashPartitioner = null
 
   private var titlesGroupedByID: RDD[(Int, Iterable[(String, List[String])])] = null
-  private var ratingsGroupedByYearByTitle: RDD[(Int, Map[Int,Iterable[(Int, Option[Double], Double, Int)]])] = null
+  private var ratingsGroupedByYearByTitle: RDD[(Int, Map[Int,Iterable[(Int, (Int, Option[Double], Double, Int))]])] = null
 
   def init(
             ratings: RDD[(Int, Int, Option[Double], Double, Int)],
@@ -29,42 +29,57 @@ class SimpleAnalytics() extends Serializable {
 
             val paired_ratings = ratings.map(r => 
                                         (new DateTime(r._5.toLong * 1000).getYear, 
-                                                      (r._2, 
+                                                      (r._2,      // movieID
                                                         // (r._1, r._2, r._3, r._4, r._5))))
                                                         (r._1, r._3, r._4, r._5))))
+                                                        // (userID, pre_rating, rating, timestamp)
             val partitioned_ratings = paired_ratings.partitionBy(ratingsPartitioner).persist(MEMORY_AND_DISK)
             val grouped_year_ratings = partitioned_ratings.groupByKey()
 
             ratingsGroupedByYearByTitle = grouped_year_ratings.map({
                                               case (year, titleCommentsIterable) => 
                                                 val ratingsByTitle = titleCommentsIterable.groupBy(_._1)
-                                                val groupedByTitle = ratingsByTitle.map { case (title, commentsIterable) =>
-                                                                                            (title, commentsIterable.map(_._2))
-                                                                                        }
+                                                val groupedByTitle = ratingsByTitle
+                                                // .map { case (title, commentsIterable) =>
+                                                //                                             (title, commentsIterable.map(_._2))
+                                                //                                         }
                                                 (year, groupedByTitle)
                                             })
               
-            println("done grouping")
+            // println("done grouping")
             
           }
 
   def getNumberOfMoviesRatedEachYear: RDD[(Int, Int)] = ratingsGroupedByYearByTitle.map({case (a, b) => (a, b.size)})
 
-  def helper_getMostRatedIDEachYear: RDD[(Int, Int)] = ratingsGroupedByYearByTitle.map({case (year, titleCommentsMap) => 
-                                                  val groupedByTitle = titleCommentsMap.map({case (title, commentsIterable) => 
-                                                                                                  (title, commentsIterable.size)
-                                                                                               })
-                                                   val maxRatedTitleID = groupedByTitle.maxBy(x => (x._2, x._1)) // (titleID, numComments)
-                                                   (maxRatedTitleID._1, year)
-                                                 }) // (titleID, year)
+  def helper_getMostRatedIDEachYear: RDD[(Int, Int)] = {
+                          val ratings_each_title_each_year = ratingsGroupedByYearByTitle.map({case (year, titleCommentsMap) => 
+                                                                                              val groupedByTitle = titleCommentsMap.map({case (title, commentsIterable) => 
+                                                                                                                                              (title, commentsIterable.size)
+                                                                                                                                            }) // (titleID, numComments)
+                                                                                              (year, groupedByTitle)
+                                                                                            }) // (year, (titleID, numComments))
+                          // flz: debug output
+                          ratings_each_title_each_year.collect().sortWith(_._1 <= _._1).foreach(println)
+                          println("\n\n\n")
+
+                          val tmp = ratings_each_title_each_year.map({case (year, titleCommendsNumber) =>
+                                                                          val maxRatedTitleID = titleCommendsNumber.maxBy(x => (x._2, x._1)) 
+                                                                          (maxRatedTitleID._1, year)
+                                                                    }) // (titleID, year)
+                          tmp.collect().sortWith(_._2 <= _._2).foreach(println)
+                          tmp
+  }
 
   def getMostRatedMovieEachYear: RDD[(Int, String)] = {
                               val maxRatedTitleID = helper_getMostRatedIDEachYear
+                              maxRatedTitleID.collect().sortWith(_._2 <= _._2).foreach(println)
                               val maxRatedTitle = maxRatedTitleID.join(titlesGroupedByID).map({case (titleID, (year, titleIterable)) => 
                                                                                                   val title = titleIterable.head._1
                                                                                                   (year, title)
                                                                                                 })
-                              // maxRatedTitle.collect().foreach(println)
+                              // flz: debug output
+                              maxRatedTitle.collect().sortWith(_._1 <= _._1).foreach(println)
                               maxRatedTitle
                             }
 
@@ -105,7 +120,14 @@ class SimpleAnalytics() extends Serializable {
    * @return The RDD for the movies which are in the supplied genres
    */
   def getAllMoviesByGenre(movies: RDD[(Int, String, List[String])],
-                          requiredGenres: RDD[String]): RDD[String] = ???
+                          requiredGenres: RDD[String]): RDD[String] = {
+                            val movieTitleGenres = titlesGroupedByID.map(x => x._2.head).map(x => (x._2, x._1))
+                            val flattenGenreTitle = movieTitleGenres.flatMap(x => x._1.map(y => (y, x._2)))
+                            val filteredGenreTitle = flattenGenreTitle.join(requiredGenres.map((_, 1))).map(x => x._2._1).distinct()
+                            // flz: debug output
+                            filteredGenreTitle.collect().foreach(println)
+                            filteredGenreTitle
+                          }
 
   /**
    * Filter the movies RDD having the required genres
@@ -119,7 +141,9 @@ class SimpleAnalytics() extends Serializable {
    */
   def getAllMoviesByGenre_usingBroadcast(movies: RDD[(Int, String, List[String])],
                                          requiredGenres: List[String],
-                                         broadcastCallback: List[String] => Broadcast[List[String]]): RDD[String] = ???
+                                         broadcastCallback: List[String] => Broadcast[List[String]]): RDD[String] = {
+                                          ???
+                                         }
 
 }
 
