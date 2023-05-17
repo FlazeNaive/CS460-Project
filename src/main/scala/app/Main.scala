@@ -41,6 +41,15 @@ object Main {
 
     val analytics = new SimpleAnalytics()
     analytics.init(ratings_rdd, movies_rdd)
+    print("done initializing analytics\n\n\n\n\n")
+    analytics.getNumberOfMoviesRatedEachYear.filter(_._1 == 2017).collect().foreach(println)
+    print("done calculating number of ratings each yeas\n\n\n\n\n")
+    analytics.getMostRatedMovieEachYear.filter(_._1 == 1996).collect().foreach(println)
+    print("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
+    analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
+    print("done looking up for most rated GENRE each yeas\n\n\n\n\n")
+    analytics.getMostAndLeastRatedGenreAllTime
+    print("done looking up for MOST and LEAST rated GENRE all time")
 
     //your code goes here
   }
