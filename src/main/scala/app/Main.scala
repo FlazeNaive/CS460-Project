@@ -4,6 +4,7 @@ import app._
 import org.apache.spark.{SparkConf, SparkContext}
 import loaders.MoviesLoader
 import loaders.RatingsLoader
+import analytics.SimpleAnalytics
 
 // flz: debug, finding which folders are accessable
 // import java.nio.file.{FileSystems, Files}
@@ -37,6 +38,9 @@ object Main {
     print("done loading ratings\n\n\n\n\n")
     // flz: debug output
     // ratings_rdd.collect().foreach(f => println(f._1, f._2, f._3, f._4, f._5))
+
+    val analytics = new SimpleAnalytics()
+    analytics.init(ratings_rdd, movies_rdd)
 
     //your code goes here
   }
