@@ -2917,6 +2917,8 @@ class MainTest {
       .reduceByKey(_ + _)  // A couple of movies occur twice with differing movie ids
       .collect() // for nicer output
       .foreach(x => {
+        println("\n\n\n" + x._1 + " " + x._2 + "\n")
+        println(res(x._1) + " " + x._2 + "\n")
         if (!res.contains(x._1)) {
           println("Aggregation does not contain: " + x)
         }
@@ -2926,6 +2928,7 @@ class MainTest {
         }
         assert((res(x._1) - x._2).abs < 0.01)})
 
+    println("\n\ndone generating\n\n")
 
     assert((aggregator.getKeywordQueryResult(List("Sci-Fi")) - 3.122).abs < 0.01)
     assert((aggregator.getKeywordQueryResult(List("Thriller")) - 3.167).abs < 0.01)

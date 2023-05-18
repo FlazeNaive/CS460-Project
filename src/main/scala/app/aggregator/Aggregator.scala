@@ -36,8 +36,10 @@ class Aggregator(sc: SparkContext) extends Serializable {
               val ratingGroupByTitle = ratings.groupBy(_._2)
               val titleGroupByTitle = title.map(x => (x._1, x))
               val joined = titleGroupByTitle.leftOuterJoin(ratingGroupByTitle).map( x => {
+                // x is the data of one movie
+                //          title, [comments]
                     val tid = x._1
-                    val title = x._2._1._2
+                    val title    = x._2._1._2
                     val keywords = x._2._1._3
 //                    var count = x._2._2 match {
 //                            // x._2._2: Option[Iterable[(Int, Int, Option[Double], Double, Int)]]
@@ -66,26 +68,34 @@ class Aggregator(sc: SparkContext) extends Serializable {
                                         yy.map(y => (y._1, y._3, y._4, y._5))
                                                   //(uid, prev_rating, rating, timestamp)
                                           .groupBy(_._1)
+                                                // group by Uid
                                                 // (uid, List[(uid, prev_rating, rating, timestamp)])
                                           .mapValues(x => {
                                                 // x is the List of comments from the same user
-                                              val sorted = x.toList.sortBy(_._4)
-                                              sorted
-                                          })
+                                                      val sorted = x.toList.sortBy(_._4)
+                                                      sorted
+                                                  })
                                           .toList
                     }
                     if (comments.size > 0) {
 //                      sum = comments.map(x => x._2.last._3).sum
                         val sumUID = comments.map(x => {
-                          val processed_comments = x._2.map(y => y._2 match {
-                            case None => y._3
-                            case Some(z) => y._3 - z
-                          })
+                          val processed_comments = x._2.map(y => y._3)
+//                          val processed_comments = x._2.map(y => y._2 match {
+//                            case None => y._3
+//                            case Some(z) => y._3 - z
+//                          })
                           processed_comments.sum
                         })
                         sum = sumUID.sum
-                        }
-
+                    }
+//                      else {
+//                      println("\n\n\n\n" + title)
+//                      println("\nNOOOOOOOOO COMMMENTTTT\n\n\n")
+//
+//                    }
+//                if (tid == 6849)
+//                  println("\n\n\n\n" + title + " " + sum + " " + comments.size + "\n\n\n")
                 (tid, (title, keywords, comments, sum, comments.size))
               }) // joined: (tid, title, keywords, a map from uid to list of SORTED comments, average rating)
               partitioner = new HashPartitioner(joined.partitions.length)
@@ -99,7 +109,11 @@ class Aggregator(sc: SparkContext) extends Serializable {
    * @return The pairs of titles and ratings
    */
 //  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._3 / x._2._4))
-  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._4 / x._2._5))
+  def getResult(): RDD[(String, Double)] = aggregated.map(x => {
+                                                  if (x._2._5 == 0)
+                                                            (x._2._1, 0.0)
+                                                  else (x._2._1, x._2._4 / x._2._5)
+                                            })
 
   /**
    * Compute the average rating across all (rated titles) that contain the
