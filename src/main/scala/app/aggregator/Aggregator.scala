@@ -30,11 +30,15 @@ class Aggregator(sc: SparkContext) extends Serializable {
           ): Unit = {
               val ratingGroupByTitle = ratings.groupBy(_._2)
               val titleGroupByTitle = title.map(x => (x._1, x))
-              val joined = titleGroupByTitle.join(ratingGroupByTitle).map( x => {
+              val joined = titleGroupByTitle.leftOuterJoin(ratingGroupByTitle).map( x => {
                     val tid = x._1
                     val title = x._2._1._2
                     val keywords = x._2._1._3
-                    val comments = x._2._2.map(y => (y._1, y._3, y._4, y._5))
+
+                    val comments = x._2._2 match {
+                      case None => List()
+                      case Some(yy) =>
+                                        yy.map(y => (y._1, y._3, y._4, y._5))
                                                   //(uid, prev_rating, rating, timestamp)
                                           .groupBy(_._1)
                                           .mapValues(x => {
@@ -42,6 +46,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
                                               val sorted = x.toList.sortBy(_._4)
                                               sorted
                                           }).toList
+                    }
                     var avg = 0.0
                     if (comments.size > 0) {
                       val sum = comments.map(x => x._2.last._3).sum
@@ -70,7 +75,17 @@ class Aggregator(sc: SparkContext) extends Serializable {
    * @return The average rating for the given keywords. Return 0.0 if no
    *         such titles are rated and -1.0 if no such titles exist.
    */
-  def getKeywordQueryResult(keywords: List[String]): Double = ???
+  def getKeywordQueryResult(keywords: List[String]): Double = {
+    val filterByKey = aggregated.filter( x => {keywords.forall(x._2._2.contains(_))})
+    if (filterByKey.count() == 0)
+      return 1.0
+    val filterByRating = filterByKey.filter(x => x._2._4 > 0)
+    if (filterByRating.count() == 0)
+      return 0.0
+    val sum = filterByRating.map(x => x._2._4).sum
+    val count = filterByRating.count()
+    sum / count
+  }
 
   /**
    * Use the "delta"-ratings to incrementally maintain the aggregate ratings

@@ -1727,7 +1727,7 @@ class MainTest {
       .collect()
       .sortWith((t1, t2) => t1.toString() <= t2.toString())
 
-    res.zip(expected).foreach(t => assert(t._1.toString() == t._2))
+    res.zip(expected).foreach(t => {println(t._1.toString(), t._2); assert(t._1.toString() == t._2)})
   }
 
   @Test(timeout = 60000)

@@ -39,6 +39,7 @@ class RatingsLoader(sc : SparkContext, path : String) extends Serializable {
         }).flatMap(_._2).toList
         pre
       }).flatMap(_._2).toList
+      val sort_for_test = usrRatingWithPre.sortBy(x => (x._1.toString, x._2.toString))
       sc.parallelize(usrRatingWithPre)
 //    val distFile = sc.textFile("./src/main/resources/"+path)
 //    val rdd = distFile.map(f=>{f.split("\n")})
