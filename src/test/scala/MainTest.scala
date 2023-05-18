@@ -2645,6 +2645,7 @@ class MainTest {
       assert((t._1._2 - t._2._2).abs < 0.01)
     })
 
+    verifyRecommendations(pred_user_148.take(8), expected_user_148.take(8))
   }
 
   @Test(timeout = 60000)
@@ -3142,6 +3143,7 @@ class MainTest {
     var expected_user_148 = List((1196, 4.0481849058529304), (260, 3.9781594058495773), (1210, 3.8884616345528236))
     verifyRecommendations(pred_user_148, expected_user_148)
 
+    verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
   }
 
   @Test(timeout = 60000)
@@ -3155,7 +3157,8 @@ class MainTest {
 
     val pred_user_16 = predictor.recommendCollaborative(16, List("Action", "Adventure", "Sci-Fi"), 3)
     var expected_user_16 = List((1210, 3.3186058635502196), (72998, 3.0539417899190133), (166528, 2.9015773846093644))
-    verifyRecommendations(pred_user_16, expected_user_16)
+    verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
+
 
 
     val pred_user_148 = predictor.recommendCollaborative(148, List("Action", "Adventure", "Sci-Fi"), 3)
@@ -3344,6 +3347,18 @@ class MainTest {
 
     verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
 
+    val expected_user_217 = List(
+      (7481, 3.7597736143794966),
+      (95165, 3.617203700226692),
+      (80083, 3.617203700226692),
+      (166528, 3.5875080051029773),
+      (104780, 3.5200445997469316),
+      (26849, 3.5200445997469316),
+      (3687, 3.5200445997469316),
+      (34405, 3.4345888917023024),
+      (68358, 3.3895483062647926),
+      (71057, 3.3833766491664443)
+      )
 
     verifyRecommendations(pred_user_148.take(8), expected_user_148.take(8))
   }
