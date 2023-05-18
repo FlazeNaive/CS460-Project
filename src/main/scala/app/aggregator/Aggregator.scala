@@ -66,20 +66,31 @@ class Aggregator(sc: SparkContext) extends Serializable {
                                         yy.map(y => (y._1, y._3, y._4, y._5))
                                                   //(uid, prev_rating, rating, timestamp)
                                           .groupBy(_._1)
+                                                // (uid, List[(uid, prev_rating, rating, timestamp)])
                                           .mapValues(x => {
-                                                  // x is the comments from the same user
+                                                // x is the List of comments from the same user
                                               val sorted = x.toList.sortBy(_._4)
                                               sorted
-                                          }).toList
+                                          })
+                                          .toList
                     }
                     if (comments.size > 0) {
-                      sum = comments.map(x => x._2.last._3).sum
-                    }
+//                      sum = comments.map(x => x._2.last._3).sum
+                        val sumUID = comments.map(x => {
+                          val processed_comments = x._2.map(y => y._2 match {
+                            case None => y._3
+                            case Some(z) => y._3 - z
+                          })
+                          processed_comments.sum
+                        })
+                        sum = sumUID.sum
+                        }
 
                 (tid, (title, keywords, comments, sum, comments.size))
               }) // joined: (tid, title, keywords, a map from uid to list of SORTED comments, average rating)
               partitioner = new HashPartitioner(joined.partitions.length)
-              aggregated = joined.partitionBy(partitioner).persist(MEMORY_AND_DISK)
+              val tmp = joined.partitionBy(partitioner).persist(MEMORY_AND_DISK)
+              aggregated = tmp
           }
 
   /**

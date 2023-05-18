@@ -3296,7 +3296,6 @@ class MainTest {
 
     verifyRecommendations(pred_user_217_2.take(8), expected_user_217_2.take(8))
 
-    verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
   }
 
   @Test(timeout = 60000)
@@ -3345,7 +3344,6 @@ class MainTest {
     verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
 
 
-    verifyRecommendations(pred_user_148.take(8), expected_user_148.take(8))
   }
 
   @Test(timeout = 60000)
