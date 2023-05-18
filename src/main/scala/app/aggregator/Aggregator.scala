@@ -14,8 +14,10 @@ class Aggregator(sc: SparkContext) extends Serializable {
   private var state = null
   private var partitioner: HashPartitioner = null
 //  private var aggregated: RDD[(Int, (String, List[String], Double, Int))] = null
-  private var aggregated: RDD[(Int, (String, List[String], List[(Int, List[(Int, Option[Double], Double, Int)])], Double, Int))] = null
-//                             (tid, (title, keywords, comments,                                avg, count))
+  private var aggregated: RDD[(Int, (String, List[String],
+                                    List[(Int, List[(Int, Option[Double], Double, Int)])],
+                                          Double, Int))] = null
+//                             (tid, (title, keywords, comments,                                sum, count))
 //                                                      (uid, prev_rating, rating, timestamp)
 
   /**
@@ -57,7 +59,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
 //                    }
 //                (tid, (title, keywords, sum, count))
 
-                    var avg = 0.0
+                    var sum = 0.0
                     val comments = x._2._2 match {
                       case None => List()
                       case Some(yy) =>
@@ -71,11 +73,10 @@ class Aggregator(sc: SparkContext) extends Serializable {
                                           }).toList
                     }
                     if (comments.size > 0) {
-                      val sum = comments.map(x => x._2.last._3).sum
-                      avg = sum / comments.size
+                      sum = comments.map(x => x._2.last._3).sum
                     }
 
-                (tid, (title, keywords, comments, avg, comments.size))
+                (tid, (title, keywords, comments, sum, comments.size))
               }) // joined: (tid, title, keywords, a map from uid to list of SORTED comments, average rating)
               partitioner = new HashPartitioner(joined.partitions.length)
               aggregated = joined.partitionBy(partitioner).persist(MEMORY_AND_DISK)
@@ -87,7 +88,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
    * @return The pairs of titles and ratings
    */
 //  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._3 / x._2._4))
-  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._4))
+  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._4 / x._2._5))
 
   /**
    * Compute the average rating across all (rated titles) that contain the
@@ -102,11 +103,12 @@ class Aggregator(sc: SparkContext) extends Serializable {
     val filterByKey = aggregated.filter( x => {keywords.forall(x._2._2.contains(_))})
     if (filterByKey.count() == 0)
       return -1.0
-    val filterByRating = filterByKey.filter(x => x._2._4 > 0)
+    val filterByRating = filterByKey.filter(x => x._2._5 > 0)
     if (filterByRating.count() == 0)
       return 0.0
 //    val sum = filterByRating.map(x => x._2._3 / x._2._4).sum
-    val sum = filterByRating.map(x => x._2._4).sum
+    val sum = filterByRating.map(x => x._2._4 / x._2._5).sum
+                  //             x is data for each movie
     val count = filterByRating.count()
     sum / count
   }
@@ -144,19 +146,26 @@ class Aggregator(sc: SparkContext) extends Serializable {
 //    })
 
     val joined = joined_raw.map(x => x._2._2 match {
-      case None => (x._1, x._2._1)
+            // x._1 : tid
+            // x._2 : joined values
+            //      x._2._1: original values of this movie
+            //          (title, keywords, comments, avg, count of comments)
+            //      x._2._2: new comments
+            //          (uid, tid, old_rating, rating, timestamp)
+
+      case None => (x._1, x._2._1)    // keep the original values
       case Some(new_Comments) => {
-        //     (uid, tid, old_rating, rating, timestamp)
+        //     [(uid, tid, old_rating, rating, timestamp)]
         val ori = x._2._1
-        val sum = ori._4 * ori._5
+        val sum = ori._4
         val to_add = new_Comments.map(y => y._3 match {
                           case None => y._4
                           case Some(z) => y._4 - z
                         })
 //        val to_add = new_Comments.map(y => (y._1, y._3, y._4, y._5)).toList.sortBy(_._4)
 //        val new_comments = (ori._3 ::: to_add)
-        val new_avg = (sum + to_add.sum) / (ori._5 + to_add.size)
-        (x._1, (ori._1, ori._2, ori._3, new_avg, ori._5 + to_add.size))
+        val new_sum = sum + to_add.sum
+        (x._1, (ori._1, ori._2, ori._3, new_sum, ori._5 + to_add.size))
       }
     })
     aggregated = joined.partitionBy(partitioner).persist(MEMORY_AND_DISK)
