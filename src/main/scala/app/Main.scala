@@ -4,6 +4,7 @@ import app._
 import org.apache.spark.{SparkConf, SparkContext}
 import loaders.MoviesLoader
 import loaders.RatingsLoader
+import aggregator.Aggregator
 import analytics.SimpleAnalytics
 import org.apache.spark.broadcast.Broadcast
 //import org.apache.log4j.{Level, Logger}
@@ -45,30 +46,36 @@ object Main {
 
 //    return 0 ;
 
-    val analytics = new SimpleAnalytics()
-    analytics.init(ratings_rdd, movies_rdd)
-    println("done initializing analytics\n\n\n\n\n")
+//    val analytics = new SimpleAnalytics()
+//    analytics.init(ratings_rdd, movies_rdd)
+//    println("done initializing analytics\n\n\n\n\n")
+//
+//     analytics.getNumberOfMoviesRatedEachYear.collect().sortWith(_._1 <= _._1).foreach(println)
+//     println("done calculating number of ratings each yeas\n\n\n\n\n")
+//     analytics.getMostRatedMovieEachYear.filter(_._1 == 1996).collect().foreach(println)
+//     println("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
+//     analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
+//     println("done looking up for most rated GENRE each yeas\n\n\n\n\n")
+//     val most_least_rated_genre = analytics.getMostAndLeastRatedGenreAllTime
+//     println("MOST and LEAST rated GENRE all time: ")
+//     println(most_least_rated_genre._1, most_least_rated_genre._2)
+//     println("done looking up for MOST and LEAST rated GENRE all time\n\n\n\n")
+////     val test_genre_list = sc.parallelize(List("Drama", "Action"))
+//    val test_genre_list = sc.parallelize(List("IMAX"))
+//     analytics.getAllMoviesByGenre(movies_rdd, (test_genre_list))
+//     println("done looking up for ALL movies by GENRE\n\n\n\n\n")
+//
+//    val res = analytics.getAllMoviesByGenre_usingBroadcast(movies_rdd, List("IMAX"), {x:List[String] => sc.broadcast(x): Broadcast[List[String]]})
+//      .collect()
+//      .sortWith(_ <= _)
+//    res.foreach(println)
+//     println("done BROADCASTING looking up for ALL movies by GENRE\n\n\n\n\n")
 
-     analytics.getNumberOfMoviesRatedEachYear.collect().sortWith(_._1 <= _._1).foreach(println)
-     println("done calculating number of ratings each yeas\n\n\n\n\n")
-     analytics.getMostRatedMovieEachYear.filter(_._1 == 1996).collect().foreach(println)
-     println("done looking up for most rated MOVIE each yeas\n\n\n\n\n")
-     analytics.getMostRatedGenreEachYear.filter(_._1 == 1996).collect().foreach(println)
-     println("done looking up for most rated GENRE each yeas\n\n\n\n\n")
-     val most_least_rated_genre = analytics.getMostAndLeastRatedGenreAllTime
-     println("MOST and LEAST rated GENRE all time: ")
-     println(most_least_rated_genre._1, most_least_rated_genre._2)
-     println("done looking up for MOST and LEAST rated GENRE all time\n\n\n\n")
-//     val test_genre_list = sc.parallelize(List("Drama", "Action"))
-    val test_genre_list = sc.parallelize(List("IMAX"))
-     analytics.getAllMoviesByGenre(movies_rdd, (test_genre_list))
-     println("done looking up for ALL movies by GENRE\n\n\n\n\n")
-
-    val res = analytics.getAllMoviesByGenre_usingBroadcast(movies_rdd, List("IMAX"), {x:List[String] => sc.broadcast(x): Broadcast[List[String]]})
-      .collect()
-      .sortWith(_ <= _)
-    res.foreach(println)
-     println("done BROADCASTING looking up for ALL movies by GENRE\n\n\n\n\n")
+    val aggregator = new Aggregator(sc)
+    aggregator.init(ratings_rdd, movies_rdd)
+    println("done initializing aggregator\n\n\n\n\n")
+    aggregator.getResult().collect().foreach(println)
+    println("done getting average\n\n\n\n\n")
 
     //your code goes here
   }

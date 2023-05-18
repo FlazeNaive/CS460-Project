@@ -13,6 +13,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
 
   private var state = null
   private var partitioner: HashPartitioner = null
+  private var aggregated: RDD[(Int, (String, List[String], List[(Int, List[(Int, Option[Double], Double, Int)])], Double))] = null
 
   /**
    * Use the initial ratings and titles to compute the average rating for each title.
@@ -24,17 +25,41 @@ class Aggregator(sc: SparkContext) extends Serializable {
    */
   def init(
             ratings: RDD[(Int, Int, Option[Double], Double, Int)],
+            //           (uid, tid, old_rating, rating, timestamp)
             title: RDD[(Int, String, List[String])]
           ): Unit = {
-                ???
-  }
+              val ratingGroupByTitle = ratings.groupBy(_._2)
+              val titleGroupByTitle = title.map(x => (x._1, x))
+              val joined = titleGroupByTitle.join(ratingGroupByTitle).map( x => {
+                    val tid = x._1
+                    val title = x._2._1._2
+                    val keywords = x._2._1._3
+                    val comments = x._2._2.map(y => (y._1, y._3, y._4, y._5))
+                                                  //(uid, prev_rating, rating, timestamp)
+                                          .groupBy(_._1)
+                                          .mapValues(x => {
+                                                  // x is the comments from the same user
+                                              val sorted = x.toList.sortBy(_._4)
+                                              sorted
+                                          }).toList
+                    var avg = 0.0
+                    if (comments.size > 0) {
+                      val sum = comments.map(x => x._2.last._3).sum
+                      avg = sum / comments.size
+                    }
+
+                (tid, (title, keywords, comments, avg))
+              }) // joined: (tid, title, keywords, a map from uid to list of SORTED comments, average rating)
+              partitioner = new HashPartitioner(joined.partitions.length)
+              aggregated = joined.partitionBy(partitioner).persist(MEMORY_AND_DISK)
+          }
 
   /**
    * Return pre-computed title-rating pairs.
    *
    * @return The pairs of titles and ratings
    */
-  def getResult(): RDD[(String, Double)] = ???
+  def getResult(): RDD[(String, Double)] = aggregated.map(x => (x._2._1, x._2._4))
 
   /**
    * Compute the average rating across all (rated titles) that contain the
