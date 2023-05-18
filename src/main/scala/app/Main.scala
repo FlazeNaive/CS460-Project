@@ -41,7 +41,9 @@ object Main {
     val ratings_rdd = ratingsLoader.load()
     print("done loading ratings\n\n\n\n\n")
     // flz: debug output
-    // ratings_rdd.collect().foreach(f => println(f._1, f._2, f._3, f._4, f._5))
+     ratings_rdd.collect().foreach(f => println(f._1, f._2, f._3, f._4, f._5))
+
+//    return 0 ;
 
     val analytics = new SimpleAnalytics()
     analytics.init(ratings_rdd, movies_rdd)

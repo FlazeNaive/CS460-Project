@@ -25,7 +25,9 @@ class Aggregator(sc: SparkContext) extends Serializable {
   def init(
             ratings: RDD[(Int, Int, Option[Double], Double, Int)],
             title: RDD[(Int, String, List[String])]
-          ): Unit = ???
+          ): Unit = {
+                ???
+  }
 
   /**
    * Return pre-computed title-rating pairs.
