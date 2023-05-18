@@ -121,8 +121,12 @@ class Aggregator(sc: SparkContext) extends Serializable {
                                // (uid, tid, old_rating, rating, timestamp)
     val delta = sc.parallelize(delta_)
     val deltaGroupByTitle = delta.groupBy(_._2)
+        // (tid, (uid, tid, old_rating, rating, timestamp))
 
     val joined_raw = aggregated.leftOuterJoin(deltaGroupByTitle)
+        // (tid, ((title, keywords, comments, avg, count),
+        //        Option[Iterable[(uid, tid, old_rating, rating, timestamp)]
+
 //    val joined = joined_raw.map(x => x._2._2 match {
 //      case None => (x._1, x._2._1)
 //      case Some(newComments) => {
@@ -142,11 +146,16 @@ class Aggregator(sc: SparkContext) extends Serializable {
     val joined = joined_raw.map(x => x._2._2 match {
       case None => (x._1, x._2._1)
       case Some(new_Comments) => {
+        //     (uid, tid, old_rating, rating, timestamp)
         val ori = x._2._1
         val sum = ori._4 * ori._5
-        val to_add = new_Comments.map(y => (y._1, y._3, y._4, y._5)).toList.sortBy(_._4)
+        val to_add = new_Comments.map(y => y._3 match {
+                          case None => y._4
+                          case Some(z) => y._4 - z
+                        })
+//        val to_add = new_Comments.map(y => (y._1, y._3, y._4, y._5)).toList.sortBy(_._4)
 //        val new_comments = (ori._3 ::: to_add)
-        val new_avg = (sum + to_add.map(_._4).sum) / (ori._5 + to_add.size)
+        val new_avg = (sum + to_add.sum) / (ori._5 + to_add.size)
         (x._1, (ori._1, ori._2, ori._3, new_avg, ori._5 + to_add.size))
       }
     })
