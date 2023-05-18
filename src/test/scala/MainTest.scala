@@ -3296,6 +3296,7 @@ class MainTest {
 
     verifyRecommendations(pred_user_217_2.take(8), expected_user_217_2.take(8))
 
+    verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
   }
 
   @Test(timeout = 60000)
@@ -3307,6 +3308,18 @@ class MainTest {
 
     val predictor = new Recommender(sc, lsh, ratingsLoader.load())
 
+    val expected_user_217 = List(
+      (7481, 3.7597736143794966),
+      (95165, 3.617203700226692),
+      (80083, 3.617203700226692),
+      (166528, 3.5875080051029773),
+      (104780, 3.5200445997469316),
+      (26849, 3.5200445997469316),
+      (3687, 3.5200445997469316),
+      (34405, 3.4345888917023024),
+      (68358, 3.3895483062647926),
+      (71057, 3.3833766491664443)
+      )
 
     val pred_user_16 = predictor.recommendCollaborative(16, List("Action", "Romance", "Western"), 10)
     val pred_user_16_min_pred_rating = 2.74
@@ -3332,6 +3345,7 @@ class MainTest {
     verifyRecommendations(pred_user_16.take(8), expected_user_16.take(8))
 
 
+    verifyRecommendations(pred_user_148.take(8), expected_user_148.take(8))
   }
 
   @Test(timeout = 60000)
