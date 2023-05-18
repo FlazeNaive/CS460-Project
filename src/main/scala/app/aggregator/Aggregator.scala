@@ -93,5 +93,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
    *  @param delta Delta ratings that haven't been included previously in aggregates
    *        format: (user_id: Int, title_id: Int, old_rating: Option[Double], rating: Double, timestamp: Int)
    */
-  def updateResult(delta_ : Array[(Int, Int, Option[Double], Double, Int)]): Unit = ???
+  def updateResult(delta_ : Array[(Int, Int, Option[Double], Double, Int)]): Unit = {
+
+  }
 }
