@@ -5,7 +5,8 @@ import org.apache.spark.{SparkConf, SparkContext}
 import loaders.MoviesLoader
 import loaders.RatingsLoader
 import analytics.SimpleAnalytics
-import org.apache.log4j.{Level, Logger}
+import org.apache.spark.broadcast.Broadcast
+//import org.apache.log4j.{Level, Logger}
 
 
 // flz: debug, finding which folders are accessable
@@ -14,11 +15,11 @@ import org.apache.log4j.{Level, Logger}
 // import scala.io.Source
 
 object Main {
+
   def main(args: Array[String]):Unit = {
     val conf = new SparkConf().setAppName("app").setMaster("local[*]")
     val sc = SparkContext.getOrCreate(conf)
 
-    Logger.getLogger("org").setLevel(Level.OFF)
     print("start\n\n\n\n\n")
 
     // flz: debug, finding which folders are accessable
@@ -56,10 +57,16 @@ object Main {
      println("MOST and LEAST rated GENRE all time: ")
      println(most_least_rated_genre._1, most_least_rated_genre._2)
      println("done looking up for MOST and LEAST rated GENRE all time\n\n\n\n")
-     val test_genre_list = sc.parallelize(List("Drama", "Comedy"))
+//     val test_genre_list = sc.parallelize(List("Drama", "Action"))
+    val test_genre_list = sc.parallelize(List("IMAX"))
      analytics.getAllMoviesByGenre(movies_rdd, (test_genre_list))
      println("done looking up for ALL movies by GENRE\n\n\n\n\n")
 
+    val res = analytics.getAllMoviesByGenre_usingBroadcast(movies_rdd, List("IMAX"), {x:List[String] => sc.broadcast(x): Broadcast[List[String]]})
+      .collect()
+      .sortWith(_ <= _)
+    res.foreach(println)
+     println("done BROADCASTING looking up for ALL movies by GENRE\n\n\n\n\n")
 
     //your code goes here
   }

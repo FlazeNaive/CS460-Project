@@ -99,7 +99,7 @@ class SimpleAnalytics() extends Serializable {
                                                                            .map((_, 1))
                                                                            .reduceByKey(_ + _) // (genre, numRatings)
                               // flz: debug output
-                              // genreEachYear.collect().foreach(println)
+                               genreEachYear.collect().foreach(println)
                               val mostRatedGenre = genreEachYear.reduce((a, b) => if (a._2 == b._2) 
                                                                                     if (a._1 < b._1) a else b
                                                                                     else if (a._2 > b._2) a else b)
@@ -109,7 +109,7 @@ class SimpleAnalytics() extends Serializable {
                               // flz: debug output
                               // println("mostRatedGenre: ", mostRatedGenre)
                               // println("leastRatedGenre: ", leastRatedGenre)
-                              (mostRatedGenre, leastRatedGenre)
+                              (leastRatedGenre, mostRatedGenre)
   }
 
   /**
@@ -121,12 +121,30 @@ class SimpleAnalytics() extends Serializable {
    */
   def getAllMoviesByGenre(movies: RDD[(Int, String, List[String])],
                           requiredGenres: RDD[String]): RDD[String] = {
+//                            val cnt = requiredGenres.count()
                             val movieTitleGenres = titlesGroupedByID.map(x => x._2.head).map(x => (x._2, x._1))
-                            val flattenGenreTitle = movieTitleGenres.flatMap(x => x._1.map(y => (y, x._2)))
+                                // (List[genre], title)
+                            val flattenGenreTitle = movieTitleGenres.flatMap(x => x._1.map(y => (y, x._2))).groupBy(_._1)
+                                // (genre, List[(title, genre)])
+//                            flattenGenreTitle.collect().foreach(println)
                             val filteredGenreTitle = flattenGenreTitle.join(requiredGenres.map((_, 1))).map(x => x._2._1).distinct()
-                            // flz: debug output
-//                            filteredGenreTitle.collect().foreach(println)
-                            filteredGenreTitle
+                            val titleLists = filteredGenreTitle.map(x => x.map(y => y._2).toSet) // Sets of titles
+                            val titleList = titleLists.flatMap(x => x).distinct() // set of unique titles
+                            val intersectionTitle = titleLists.reduce((a, b) => a.intersect(b))
+                            val titleMeetAll = titleList.filter(x => intersectionTitle.contains(x))
+                            titleMeetAll.collect().foreach(println)
+                            titleMeetAll
+
+//                                val movieTitleGenres = titlesGroupedByID.map(x => x._2.head)
+//                                println("required: ")
+//                                requiredGenres.collect().foreach(println)
+//
+//                                val filteredMovies = movieTitleGenres.filter({
+//                                  case (_, genres) => requiredGenres.collect().forall(genres.contains)
+//                                })
+//                                val filteredTitle = filteredMovies.map(_._1)
+//                                filteredTitle.collect().foreach(println)
+//                                filteredTitle
                           }
 
   /**
@@ -142,7 +160,14 @@ class SimpleAnalytics() extends Serializable {
   def getAllMoviesByGenre_usingBroadcast(movies: RDD[(Int, String, List[String])],
                                          requiredGenres: List[String],
                                          broadcastCallback: List[String] => Broadcast[List[String]]): RDD[String] = {
-                                          ???
+                                              val broadcastRequiredGenres = broadcastCallback(requiredGenres)
+                                              val movieTitleGenres = titlesGroupedByID.map(x => x._2.head)
+                                              val filteredMovie = movieTitleGenres.filter({
+                                                case (_, genres) => broadcastRequiredGenres.value.forall(genres.contains)
+                                              })
+                                              val filteredTitle = filteredMovie.map(_._1)
+//                                              filteredTitle.collect().foreach(println)
+                                              filteredTitle
                                          }
 
 }
