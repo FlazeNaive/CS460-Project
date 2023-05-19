@@ -49,5 +49,14 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
    *         If no match exists in the LSH index, return an empty result list.
    */
   def lookup[T: ClassTag](queries: RDD[(IndexedSeq[Int], T)])
-  : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = ???
+  : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = {
+    val dataPartitioned = getBuckets()
+    val queryData = queries.map(x => {
+      val signature = x._1
+      val payload = x._2
+      val result = dataPartitioned.lookup(signature).flatten.toList
+      (signature, payload, result)
+    })
+    queryData
+  }
 }
