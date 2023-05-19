@@ -4,6 +4,7 @@ package app.recommender.LSH
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
 import scala.reflect.ClassTag
+import org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK
 
 /**
  * Class for indexing the data for LSH
@@ -30,7 +31,14 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
    *
    * @return Data structure of LSH index
    */
-  def getBuckets(): RDD[(IndexedSeq[Int], List[(Int, String, List[String])])] = ???
+  def getBuckets(): RDD[(IndexedSeq[Int], List[(Int, String, List[String])])] = {
+    val tagsExtract = data.map(_._3)
+    val tagsHashed = hash(tagsExtract)
+    val dataWithHash = tagsHashed.map(_._1).zip(data) // data.zip(tagsHashed)
+    val dataGrouped = dataWithHash.groupByKey().map(x => (x._1, x._2.toList))
+    val dataPartitioned = dataGrouped.partitionBy(new HashPartitioner(4)).persist(MEMORY_AND_DISK)
+    dataPartitioned
+  }
 
   /**
    * Lookup operation on the LSH index

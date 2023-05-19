@@ -7,6 +7,7 @@ import loaders.RatingsLoader
 import aggregator.Aggregator
 import analytics.SimpleAnalytics
 import org.apache.spark.broadcast.Broadcast
+import recommender.LSH.LSHIndex
 //import org.apache.log4j.{Level, Logger}
 
 
@@ -71,15 +72,14 @@ object Main {
 //    res.foreach(println)
 //     println("done BROADCASTING looking up for ALL movies by GENRE\n\n\n\n\n")
 
-    val aggregator = new Aggregator(sc)
-    aggregator.init(ratings_rdd, movies_rdd)
-    println("done initializing aggregator\n\n\n\n\n")
-    aggregator.getResult().collect().sortWith(_._1 <= _._1).foreach(println)
-    println("done getting average\n\n\n\n\n")
+//    val aggregator = new Aggregator(sc)
+//    aggregator.init(ratings_rdd, movies_rdd)
+//    println("done initializing aggregator\n\n\n\n\n")
+//    aggregator.getResult().collect().sortWith(_._1 <= _._1).foreach(println)
+//    println("done getting average\n\n\n\n\n")
+//
+//      println("FANTASY: ", aggregator.getKeywordQueryResult(List("Fantasy")))
+//      println("FANTASY + SCI-FI: ", aggregator.getKeywordQueryResult(List("Fantasy", "Sci-Fi")))
 
-      println("FANTASY: ", aggregator.getKeywordQueryResult(List("Fantasy")))
-      println("FANTASY + SCI-FI: ", aggregator.getKeywordQueryResult(List("Fantasy", "Sci-Fi")))
-
-    //your code goes here
   }
 }
