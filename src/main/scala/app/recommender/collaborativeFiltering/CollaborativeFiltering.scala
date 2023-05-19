@@ -29,10 +29,12 @@ class CollaborativeFiltering(rank: Int,
     model = ALS.train(ratings,
                       rank,
                       maxIterations,
-                      regularizationParameter)
+                      regularizationParameter,
+                      n_parallel,   // n_parallel
+                      seed)
   }
   def predict(userId: Int, movieId: Int): Double = {
-    model.predict(userId, movieId) - 0.005
+    model.predict(userId, movieId)
   }
 
 }
