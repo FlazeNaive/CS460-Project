@@ -25,6 +25,9 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
   def hash(input: RDD[List[String]]) : RDD[(IndexedSeq[Int], List[String])] = {
     input.map(x => (minhash.hash(x), x))
   }
+  def hashSingle(input: List[String]) : (IndexedSeq[Int], List[String]) = {
+    (minhash.hash(input), input)
+  }
 
   /**
    * Return data structure of LSH index for testing
@@ -59,6 +62,14 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
 //      val result = dataPartitioned.lookup(signature).flatten.toList
 //      (signature, payload, result)
 //    })
+    queryData
+  }
+
+  def lookupSingle[T: ClassTag](query: (IndexedSeq[Int], T))
+  : (IndexedSeq[Int], T, List[(Int, String, List[String])]) = {
+    val dataPartitioned = getBuckets()
+    val queryDataRaw = dataPartitioned.lookup(query._1).flatten.toList
+    val queryData = (query._1, query._2, queryDataRaw)
     queryData
   }
 }

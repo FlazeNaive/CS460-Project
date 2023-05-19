@@ -21,4 +21,9 @@ class NNLookup(lshIndex: LSHIndex) extends Serializable {
     val queryData = lshIndex.lookup(tagsHashed)
     queryData.map(x => (x._2, x._3))
   }
+  def lookupSingle(query: List[String]): List[(Int, String, List[String])] = {
+    val tagsHashed = lshIndex.hashSingle(query)
+    val queryData = lshIndex.lookupSingle(tagsHashed)
+    queryData._3
+  }
 }

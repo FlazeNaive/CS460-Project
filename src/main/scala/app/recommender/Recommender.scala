@@ -24,7 +24,25 @@ class Recommender(sc: SparkContext,
    * Returns the top K recommendations for movies similar to the List of genres
    * for userID using the BaseLinePredictor
    */
-  def recommendBaseline(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = ???
+  def recommendBaseline(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = {
+    val movies = nn_lookup.lookupSingle(genre)
+
+    println("Movies Found: ")
+    movies.foreach(println)
+
+    val watchedMovies = baselinePredictor.listWatchedMovies(userId)
+    val moviesToSort = movies.filter(x => !watchedMovies.contains(x._1))
+    val ratingsPred = moviesToSort.map(x => (x._1, baselinePredictor.predict(userId, x._1)))
+    val ratingsSorted = ratingsPred.sortBy(-_._2)
+    ratingsSorted.take(K)
+
+//        val RDDGenre = sc.parallelize(List(genre))
+//        val movies = nn_lookup.lookup(RDDGenre).flatMap(_._2)
+//        val watchedMovies = baselinePredictor.listWatchedMovies(userId)
+//        val moviesToSort = movies.filter(x => !watchedMovies.contains(x._1))
+//        val ratingsPred = moviesToSort.map(x => (x._1, baselinePredictor.predict(userId, x._1)))
+//        ratingsPred.take(K)
+  }
 
   /**
    * The same as recommendBaseline, but using the CollaborativeFiltering predictor

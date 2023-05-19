@@ -7,6 +7,7 @@ class BaselinePredictor() extends Serializable {
   private var state = null
   private var ratingUserBased: RDD[(Int, Double)] = null
   private var ratingMovieBased: RDD[(Int, Double)] = null
+  private var ratingUserMovie: RDD[(Int, List[(Int, Double)])] = null
 
   def scale(x: Double, avg: Double): Double = {
       if (x > avg)  5.0 - avg
@@ -16,12 +17,12 @@ class BaselinePredictor() extends Serializable {
 
   def init(ratingsRDD: RDD[(Int, Int, Option[Double], Double, Int)]): Unit = {
               //          [(uid, mid, previous rating,  rating, timestamp)]
-    /* TODO:
+     /*
       * 1. Calculate the average rating for each user
       * 2. Calculate the derivation of each user's rating from the average
       * 3. Normalize the derivation, divide by scale(x, avg)
-     */
-      val ratingUserMovie = ratingsRDD.groupBy(_._1)
+      */
+      ratingUserMovie = ratingsRDD.groupBy(_._1)
                                .mapValues(x => {
                                   val moviesRating = x.groupBy(_._2).mapValues(x => x.toList
                                                                                       .maxBy(_._5)
@@ -55,5 +56,9 @@ class BaselinePredictor() extends Serializable {
     val r_u = ratingUserBased.lookup(userId).head
     val r_m = ratingMovieBased.lookup(movieId).head
     r_u + r_m * scale((r_u + r_m), r_u)
+  }
+
+  def listWatchedMovies(userId: Int): List[Int] = {
+    ratingUserMovie.lookup(userId).head.map(_._1)
   }
 }
