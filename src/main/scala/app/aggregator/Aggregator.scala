@@ -151,33 +151,6 @@ class Aggregator(sc: SparkContext) extends Serializable {
         // (tid, (uid, tid, old_rating, rating, timestamp))
 
     val joined_raw = aggregated.leftOuterJoin(deltaGroupByTitle)
-        // (tid, ((title, keywords, comments, avg, count),
-        //        Option[Iterable[(uid, tid, old_rating, rating, timestamp)]
-//    joined_raw.collect().foreach(x => {
-//      x._2._2 match {
-//        case None => {}
-//        case Some(y) => {
-//          println("TITLE: ", x._2._1._1)
-//          println("COMMENTS: ", y)
-//        }
-//      }
-//    })
-
-//    val joined = joined_raw.map(x => x._2._2 match {
-//      case None => (x._1, x._2._1)
-//      case Some(newComments) => {
-//        val ori = x._2._1
-//            //    (title, [keywords], sum, count)
-//        val delta_sum = newComments.map(y => y._3 match {
-//          case None => y._4
-//          case Some(z) => y._4 - z
-//        }).sum
-//        val delta_count = newComments.size
-//        val new_sum = ori._3 + delta_sum
-//        val new_count = ori._4 + delta_count
-//        (x._1, (ori._1, ori._2, new_sum, new_count))
-//      }
-//    })
 
     val joined = joined_raw.map(x => x._2._2 match {
             // x._1 : tid
@@ -192,27 +165,16 @@ class Aggregator(sc: SparkContext) extends Serializable {
         //     [(uid, tid, old_rating, rating, timestamp)]
         val ori = x._2._1
         val sum = ori._4
-//        println("Original sum: ", sum)
-//        println("Original count: ", ori._5)
-//        if (ori._5 != 0)
-//          println("Original average: ", sum / ori._5)
-//        else
-//          println("No previous comments")
 
         val to_add = new_Comments.map(y => y._3 match {
                           case None => y._4
                           case Some(z) => y._4 - z
                         })
-//        val to_add = new_Comments.map(y => (y._1, y._3, y._4, y._5)).toList.sortBy(_._4)
-//        val new_comments = (ori._3 ::: to_add)
         val new_sum = sum + to_add.sum
         val delta_count = new_Comments.map(y => y._3 match {
                           case None => 1
                           case Some(z) => 0
                         }).sum
-//        println("New sum: ", new_sum)
-//        println("New count: ", ori._5 + delta_count)
-//        println("New average: ", new_sum / (ori._5 + delta_count))
 
         (x._1, (ori._1, ori._2, ori._3, new_sum, ori._5 + delta_count))
       }
