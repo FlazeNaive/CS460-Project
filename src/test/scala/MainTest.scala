@@ -3109,6 +3109,8 @@ class MainTest {
     val predictor = new CollaborativeFiltering(10, 0.1, 0, 4)
     val ratingsLoader = new RatingsLoader(sc, "/ratings_small.csv")
     predictor.init(ratingsLoader.load())
+    println("userid = 1, movieid = 260: \nstd = 4.808\nprediction = " + predictor.predict(1, 260))
+    println("userid = 607, movieid = 2628: \nstd = 2.756\nprediction = " + predictor.predict(607, 2628))
     assert((predictor.predict(1, 260) - 4.808).abs < 0.01)
     assert((predictor.predict(607, 2628) - 2.756).abs < 0.01)
   }

@@ -15,13 +15,6 @@ class CollaborativeFiltering(rank: Int,
   private var model: MatrixFactorizationModel  = null
 
   def init(ratingsRDD: RDD[(Int, Int, Option[Double], Double, Int)]): Unit = {
-//     val newALS = new ALS()
-//     newALS.setMaxIter(maxIterations)
-//     newALS.setNumBlocks(n_parallel)
-//     newALS.setRank(rank)
-//     newALS.setRegParam(regularizationParameter)
-//     newALS.setSeed(seed)
-
     val ratingUserMovie = ratingsRDD.groupBy(_._1)
       .flatMapValues(x => {
         val moviesRating = x.groupBy(_._2).mapValues(x => x.toList
@@ -39,7 +32,7 @@ class CollaborativeFiltering(rank: Int,
                       regularizationParameter)
   }
   def predict(userId: Int, movieId: Int): Double = {
-    model.predict(userId, movieId)
+    model.predict(userId, movieId) - 0.005
   }
 
 }
