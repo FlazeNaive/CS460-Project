@@ -51,12 +51,14 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
   def lookup[T: ClassTag](queries: RDD[(IndexedSeq[Int], T)])
   : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = {
     val dataPartitioned = getBuckets()
-    val queryData = queries.map(x => {
-      val signature = x._1
-      val payload = x._2
-      val result = dataPartitioned.lookup(signature).flatten.toList
-      (signature, payload, result)
-    })
+    val queryDataRaw = queries.join(dataPartitioned)
+    val queryData = queryDataRaw.map(x => (x._1, x._2._1, x._2._2))
+//    val queryData = queries.map(x => {
+//      val signature = x._1
+//      val payload = x._2
+//      val result = dataPartitioned.lookup(signature).flatten.toList
+//      (signature, payload, result)
+//    })
     queryData
   }
 }

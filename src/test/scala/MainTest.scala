@@ -3036,7 +3036,13 @@ class MainTest {
       "(List(Action, Adventure, Sci-Fi),List((1196,Star Wars: Episode V - The Empire Strikes Back (1980),List(Action, Adventure, Sci-Fi)), (1210,Star Wars: Episode VI - Return of the Jedi (1983),List(Action, Adventure, Sci-Fi)), (122886,Star Wars: Episode VII - The Force Awakens (2015),List(Action, Adventure, Fantasy, Sci-Fi, IMAX)), (166528,Rogue One: A Star Wars Story (2016),List(Action, Adventure, Fantasy, Sci-Fi)), (179819,Star Wars: The Last Jedi (2017),List(Action, Adventure, Fantasy, Sci-Fi)), (260,Star Wars: Episode IV - A New Hope (1977),List(Action, Adventure, Sci-Fi)), (2628,Star Wars: Episode I - The Phantom Menace (1999),List(Action, Adventure, Sci-Fi)), (33493,Star Wars: Episode III - Revenge of the Sith (2005),List(Action, Adventure, Sci-Fi)), (5378,Star Wars: Episode II - Attack of the Clones (2002),List(Action, Adventure, Sci-Fi, IMAX)), (72998,Avatar (2009),List(Action, Adventure, Sci-Fi, IMAX))))"
     )
 
-    res.zip(expected).foreach(t => assert(t._1.toString() == t._2))
+    res.zip(expected).foreach(t => {
+        println("looking for: ")
+        println(t._2)
+        println("found: ")
+        println(t._1)
+        assert(t._1.toString() == t._2)
+    })
   }
 
   @Test(timeout = 60000)
@@ -3058,7 +3064,14 @@ class MainTest {
       "(List(space),List())"
     )
 
-    res.zip(expected).foreach(t => assert(t._1.toString() == t._2))
+    res.zip(expected).foreach(t => {
+      println("looking for: ")
+      println(t._2)
+      println("found: ")
+      println(t._1)
+      assert(t._1.toString() == t._2)
+    })
+//    res.zip(expected).foreach(t => assert(t._1.toString() == t._2))
   }
 
   @Test(timeout = 60000)
