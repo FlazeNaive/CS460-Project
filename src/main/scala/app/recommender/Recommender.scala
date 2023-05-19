@@ -26,10 +26,6 @@ class Recommender(sc: SparkContext,
    */
   def recommendBaseline(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = {
     val movies = nn_lookup.lookupSingle(genre)
-
-    println("Movies Found: ")
-    movies.foreach(println)
-
     val watchedMovies = baselinePredictor.listWatchedMovies(userId)
     val moviesToSort = movies.filter(x => !watchedMovies.contains(x._1))
     val ratingsPred = moviesToSort.map(x => (x._1, baselinePredictor.predict(userId, x._1)))
@@ -47,5 +43,13 @@ class Recommender(sc: SparkContext,
   /**
    * The same as recommendBaseline, but using the CollaborativeFiltering predictor
    */
-  def recommendCollaborative(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = ???
+  def recommendCollaborative(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = {
+    val movies = nn_lookup.lookupSingle(genre)
+    val watchedMovies = baselinePredictor.listWatchedMovies(userId)
+    val moviesToSort = movies.filter(x => !watchedMovies.contains(x._1))
+
+    val ratingsPred = moviesToSort.map(x => (x._1, collaborativePredictor.predict(userId, x._1)))
+    val ratingsSorted = ratingsPred.sortBy(-_._2)
+    ratingsSorted.take(K)
+  }
 }
